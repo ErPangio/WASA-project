@@ -72,7 +72,7 @@ Further details
 
 OpenAPI
 
-You will need to define dierent APIs from the requirements above. For each API, you must define the
+You will need to define different APIs from the requirements above. For each API, you must define the
 operationId key. We expect to find at least these operation IDs:
 • doLogin (see simplified login)
 • setMyUserName
@@ -92,5 +92,5 @@ operationId key. We expect to find at least these operation IDs:
 CORS
 The backend must reply to CORS pre-flight requests with the appropriate setting.
 To avoid problems during the homework grading, you should allow all origins and you should set
-the “Max-Age” attribute to 1 second. See the example code in the Fantastic Coee decaeinated
+the “Max-Age” attribute to 1 second. See the example code in the Fantastic Coffee decaffeinated
 repository.
