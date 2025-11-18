@@ -57,7 +57,9 @@ return the user identifier you need to pass into the Authorization header in any
 This authentication method is named “Bearer Authentication” (however, in this project, you should
 use the user identifier in place of the token):
 -https://swagger.io/docs/specification/authentication/bearer-authentication/
+
 -https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication
+
 -https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization
 There is no need either for HTTP sessions or session cookies.
 What about “security”? What if a user logs in using the name of another user?
