@@ -61,6 +61,7 @@ use the user identifier in place of the token):
 -https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication
 
 -https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization
+
 There is no need either for HTTP sessions or session cookies.
 What about “security”? What if a user logs in using the name of another user?
 In real-world projects, the identity provider is in charge of authenticating the user. On the other
