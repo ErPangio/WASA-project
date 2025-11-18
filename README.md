@@ -1,115 +1,93 @@
-# Fantastic coffee (decaffeinated)
+WASA Project: “WASAText”
 
-This repository contains the basic structure for [Web and Software Architecture](http://gamificationlab.uniroma1.it/en/wasa/) homework project.
-It has been described in class.
+Version 1.
 
-"Fantastic coffee (decaffeinated)" is a simplified version for the WASA course, not suitable for a production environment.
-The full version can be found in the "Fantastic Coffee" repository.
+Introduction
+As part of the Web and Soware Architecture exam, you will:
+1. define APIs using the OpenAPI standard
+2. design and develop the server side (“backend”) in Go
+3. design and develop the client side (“frontend”) in JavaScript
+4. create a Docker container image for deployment
 
-## Project structure
+WASAText
 
-* `cmd/` contains all executables; Go programs here should only do "executable-stuff", like reading options from the CLI/env, etc.
-	* `cmd/healthcheck` is an example of a daemon for checking the health of servers daemons; useful when the hypervisor is not providing HTTP readiness/liveness probes (e.g., Docker engine)
-	* `cmd/webapi` contains an example of a web API server daemon
-* `demo/` contains a demo config file
-* `doc/` contains the documentation (usually, for APIs, this means an OpenAPI file)
-* `service/` has all packages for implementing project-specific functionalities
-	* `service/api` contains an example of an API server
-	* `service/globaltime` contains a wrapper package for `time.Time` (useful in unit testing)
-* `vendor/` is managed by Go, and contains a copy of all dependencies
-* `webui/` is an example of a web frontend in Vue.js; it includes:
-	* Bootstrap JavaScript framework
-	* a customized version of "Bootstrap dashboard" template
-	* feather icons as SVG
-	* Go code for release embedding
+Connect with your friends eortlessly using WASAText! Send and receive messages, whether one-on-one
+or in groups, all from the convenience of your PC. Enjoy seamless conversations with text or GIFs and
+easily stay in touch through your private chats or group discussions.
+Functional design specifications
+The user is presented with a list of conversations with other users or with groups, sorted in reverse
+chronological order. Each element in the list must display the username of the other person or the
+group name, the user profile photo or the group photo, the date and time of the latest message,
+the preview (snippet) of the text message, or an icon for a photo message. The user can start a new
+conversation with any other user of WASAText, and this conversation will automatically be added
+to the list. The user can search for other users via the username and see all the existing WASAText
+usernames.
+The user can create a new group with any number of other WASAText users to start a conversation.
+Group members can add other users to the group, but users cannot join groups on their own or even
+see groups they aren’t a part of. Additionally, users have the option to leave a group at any time.
+The user can open a conversation to view all exchanged messages, displayed in reverse chronological
+order. Each message includes the timestamp, the content (whether text or photo), and the sender’s
+username for received messages, or one/two checkmarks to indicate the status of sent messages. Any
+reactions (comments) on messages are also displayed, along with the names of the users who posted
+them.
+One checkmark indicates that the message has been received by the recipient (by all the recipients
+for groups) in their conversation list. Two checkmarks mean that the message has been read by the
+recipient (by all the recipients for groups) within the conversation itself.
+The user can send a new message, reply to an existing one, forward a message, and delete any sent
+messages. Users can also react to messages (a.k.a. comment them) with an emoticon, and delete their
+reactions at any time (a.k.a. uncomment).
+A user can log in simply by entering their username. For more information, refer to the “Simplified
+Login” section. Users also have the ability to update their name, provided the new name is not already
+in use by someone else.
 
-Other project files include:
-* `open-node.sh` starts a new (temporary) container using `node:20` image for safe and secure web frontend development (you don't want to use `node` in your system, do you?).
+Simplified login
 
-## Go vendoring
+In real-world scenarios, new developments avoid implementing registration, login, and password-lost
+flows as they are a security nightmare, cumbersome, error-prone, and outside the project scope. So,
+why lose money and time on implementing those? The best practice is now to delegate those tasks to
+a separate service (“identity provider”), either in-house (owned by the same company) or a third party
+(like “Login with Apple/Facebook/Google” buttons).
+In this project, we do not have an external service like this. Instead, we decided to provide you with a
+specification for a login API so that you won’t spend time dealing with the design of the endpoint. The
+provided OpenAPI document is at the end of this PDF.
+The login endpoint accepts a username – like “Maria” – without any password. If the username already
+exists, the user is logged in. If the username is new, the user is registered and logged in. The API will
+return the user identifier you need to pass into the Authorization header in any other API.
 
-This project uses [Go Vendoring](https://go.dev/ref/mod#vendoring). You must use `go mod vendor` after changing some dependency (`go get` or `go mod tidy`) and add all files under `vendor/` directory in your commit.
+This authentication method is named “Bearer Authentication” (however, in this project, you should
+use the user identifier in place of the token):
+• https://swagger.io/docs/specification/authentication/bearer-authentication/
+• https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication
+• https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization
+There is no need either for HTTP sessions or session cookies.
+What about “security”? What if a user logs in using the name of another user?
+In real-world projects, the identity provider is in charge of authenticating the user. On the other
+hand, in this project, you need not integrate an identity provider (as it is straightforward and not
+very interesting).
 
-For more information about vendoring:
+Further details
 
-* https://go.dev/ref/mod#vendoring
-* https://www.ardanlabs.com/blog/2020/04/modules-06-vendoring.html
+OpenAPI
 
-## Node/YARN vendoring
+You will need to define dierent APIs from the requirements above. For each API, you must define the
+operationId key. We expect to find at least these operation IDs:
+• doLogin (see simplified login)
+• setMyUserName
+• getMyConversations
+• getConversation
+• sendMessage
+• forwardMessage
+• commentMessage
+• uncommentMessage
+• deleteMessage
+• addToGroup
+• leaveGroup
+• setGroupName
+• setMyPhoto
+• setGroupPhoto
 
-This repository uses `yarn` and a vendoring technique that exploits the ["Offline mirror"](https://yarnpkg.com/features/caching). As for the Go vendoring, the dependencies are inside the repository.
-
-You should commit the files inside the `.yarn` directory.
-
-## How to set up a new project from this template
-
-You need to:
-
-* Change the Go module path to your module path in `go.mod`, `go.sum`, and in `*.go` files around the project
-* Rewrite the API documentation `doc/api.yaml`
-* If no web frontend is expected, remove `webui` and `cmd/webapi/register-webui.go`
-* Update top/package comment inside `cmd/webapi/main.go` to reflect the actual project usage, goal, and general info
-* Update the code in `run()` function (`cmd/webapi/main.go`) to connect to databases or external resources
-* Write API code inside `service/api`, and create any further package inside `service/` (or subdirectories)
-
-## How to build
-
-If you're not using the WebUI, or if you don't want to embed the WebUI into the final executable, then:
-
-```shell
-go build ./cmd/webapi/
-```
-
-If you're using the WebUI and you want to embed it into the final executable:
-
-```shell
-./open-node.sh
-# (here you're inside the container)
-yarn run build-embed
-exit
-# (outside the container)
-go build -tags webui ./cmd/webapi/
-```
-
-## How to run (in development mode)
-
-You can launch the backend only using:
-
-```shell
-go run ./cmd/webapi/
-```
-
-If you want to launch the WebUI, open a new tab and launch:
-
-```shell
-./open-node.sh
-# (here you're inside the container)
-yarn run dev
-```
-
-## How to build for production / homework delivery
-
-```shell
-./open-node.sh
-# (here you're inside the container)
-yarn run build-prod
-```
-
-For "Web and Software Architecture" students: before committing and pushing your work for grading, please read the section below named "My build works when I use `yarn run dev`, however there is a Javascript crash in production/grading"
-
-## Known issues
-
-### My build works when I use `yarn run dev`, however there is a Javascript crash in production/grading
-
-Some errors in the code are somehow not shown in `vite` development mode. To preview the code that will be used in production/grading settings, use the following commands:
-
-```shell
-./open-node.sh
-# (here you're inside the container)
-yarn run build-prod
-yarn run preview
-```
-
-## License
-
-See [LICENSE](LICENSE).
+CORS
+The backend must reply to CORS pre-flight requests with the appropriate setting.
+To avoid problems during the homework grading, you should allow all origins and you should set
+the “Max-Age” attribute to 1 second. See the example code in the Fantastic Coee decaeinated
+repository.
