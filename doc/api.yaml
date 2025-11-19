@@ -450,5 +450,15 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse' 
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+security:  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT    
+                
   
