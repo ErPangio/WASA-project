@@ -1,0 +1,454 @@
+open api: 3.0.3
+info:
+  title: WASAtext API
+  version: 1.0.0
+  description: API documentation for the WASAtext service.
+
+servers:
+  - url: http://localhost: 3000
+    description: Local development server
+tags:
+  - name: login
+    description: Operations related to user login and management
+  - name: user
+    description: Operations related to user data management
+  - name: message
+    description: Operations related to message handling
+  - name: conversation
+    description: Operations related to conversation management
+  - name: group
+    description: Operations related to group management
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Invalid request"
+    user:
+      type: object
+      properties:
+        identifier:
+          type: integer
+          example: "12345"
+        name:
+          type: string
+          example: "Maria"
+    conversation:
+      type: object
+      properties:
+        identifier:
+          type: string
+          example: "conv123456"
+        participants:
+          type: array
+          items:
+            type: object
+              properties:
+                $ref: '#/components/schemas/user'
+          example: ["user1", "user2"]
+        lastMessage:
+          type: string
+          example: "Hello, how are you?"
+    
+    message:
+      type: object
+      properties:
+        messageId:
+          type: string
+          example: "msg123456"
+        sender:
+          type: string
+          example: "user1"
+        content:
+          type: string
+          example: "Hello, how are you?"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-01T12:00:00Z"
+    reaction:
+        type: object
+        properties:
+          reactionId:
+            type: string
+            example: "react123456"
+          messageId:
+            type: string
+            example: "msg123456"
+          userId:
+            type: string
+            example: "user1"
+          reaction:
+            type: string
+            example: "👍"
+          timestamp:
+            type: string
+            format: date-time
+            example: "2024-01-01T12:05:00Z"
+paths:
+  /session:
+    post:
+      tags: ["login"]
+      summary: Logs in the user
+      description: |-
+        If the user does not exist, it will be created,
+        and an identifier is returned.
+        If the user exists, the user identifier is returned.
+      operationId: doLogin
+      requestBody:
+        description: User details
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Maria
+                  pattern: 'ˆ.*?$'
+                  minLength: 3
+                  maxLength: 16
+        required: true
+      responses:
+        '201':
+          description: User log-in action successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  identifier:
+                    # change here if you decide to use an integer
+                    # or any other type of identifier
+                    type: string
+                    example: "abcdef012345"
+  /User/me/Username:
+    put: 
+      tags: ["user"]
+      summary: Updates the username of the logged-in user
+      description: Updates the username of the logged-in user
+      operationId: setMyUsername
+      requestBody:
+        description: New username details
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: JohnDoe
+                  pattern: 'ˆ.*?$'
+                  minLength: 3
+                  maxLength: 16
+        required: true
+      responses:
+        '200':
+          description: Username updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Username updated successfully"
+        '400':
+          description: Invalid username provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /conversation:
+    get:
+      tags: ["conversation"]
+      summary: Retrieves all conversations for the logged-in user
+      description: Retrieves all conversations for the logged-in user
+      operationId: getMyConversations
+      responses:
+        '200':
+          description: List of conversations retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/conversation'
+        '404':
+          description: No conversations found
+
+  /conversation/{conversationId}:
+    get:
+      tags: ["conversation"]
+      summary: Retrieves details of a specific conversation
+      description: Retrieves details of a specific conversation by its ID
+      operationId: getConversation
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          description: The ID of the conversation to retrieve
+          schema:
+            type: string
+            example: "conv123456"
+      responses:
+        '200':
+          description: Conversation details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/conversation'
+        '400':
+          description: Invalid conversation ID provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Conversation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /conversation/{conversationId}/message:
+    post:
+      tags: ["message"]
+      summary: Sends a message in a specific conversation
+      description: Sends a message in a specific conversation by its ID
+      operationId: sendMessage
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          description: The ID of the conversation to send the message to
+          schema:
+            type: string
+            example: "conv123456"
+      requestBody:
+        description: Message details
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  example: "Hello, how are you?"
+                  minLength: 1
+                  maxLength: 1000
+        required: true
+      responses:
+        '201':
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/message'
+        '400':
+          description: Invalid message content or conversation ID provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Conversation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /conversation/{conversationId}/message:
+    post:
+      tags: ["message"]
+      summary: forwards a message in a specific conversation
+      description: forwards a message in a specific conversation by its ID
+      operationId: forwardMessage
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          description: The ID of the conversation to forward the message to
+          schema:
+            type: string
+            example: "conv123456"
+      requestBody:
+        description: Message details
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messageId:
+                  type: string
+                  example: "msg123456"
+        required: true
+      responses:
+        '201':
+          description: Message forwarded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/message'
+        '400':
+          description: Invalid message ID or conversation ID provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Conversation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /conversation/{conversationId}/messages/{messageId}/forward:
+    post:
+      tags: [message]
+      summary: reacts to a message in a specific conversation
+      description: reacts to a message in a specific conversation by its ID
+      operationId: forwardMessage
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          description: The ID of the conversation containing the message
+          schema:
+            type: string
+            example: "conv123456"
+        - name: messageId
+          in: path
+          required: true
+          description: The ID of the message to react to
+          schema:
+            type: string
+            example: "msg123456"
+      requestBody:
+        description: Reaction details
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reaction:
+                  type: string
+                  example: "👍"
+                  minLength: 1
+                  maxLength: 5
+        required: true
+      responses:
+        '201':
+          description: Reaction added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/reaction'
+        '400':
+          description: Invalid reaction, message ID, or conversation ID provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Conversation or message not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /conversation/{conversationId}/messages/{messageId}/forward:
+    delete:
+      tags: [message]
+      summary: removes a reaction from a message in a specific conversation
+      description: removes a reaction from a message in a specific conversation by its ID
+      operationId: removeReaction
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          description: The ID of the conversation containing the message
+          schema:
+            type: string
+            example: "conv123456"
+        - name: messageId
+          in: path
+          required: true
+          description: The ID of the message to remove the reaction from
+          schema:
+            type: string
+            example: "msg123456"
+        - name: reactionId
+          in: query
+          required: true
+          description: The ID of the reaction to be removed
+          schema:
+            type: string
+            example: "react123456"
+      responses:
+        '200':
+          description: Reaction removed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Reaction removed successfully"
+        '400':
+          description: Invalid message ID or conversation ID provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Conversation or message not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /conversation/{conversationId}/messages/{messageId}:
+    delete:
+      tags: ["message"]
+      summary: Deletes a specific message in a conversation
+      description: Deletes a specific message in a conversation by its ID
+      operationId: deleteMessage
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          description: The ID of the conversation containing the message
+          schema:
+            type: string
+            example: "conv123456"
+        - name: messageId
+          in: path
+          required: true
+          description: The ID of the message to delete
+          schema:
+            type: string
+            example: "msg123456"
+      responses:
+        '200':
+          description: Message deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Message deleted successfully"
+        '400':
+          description: Invalid message ID or conversation ID provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Conversation or message not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse' 
+  
